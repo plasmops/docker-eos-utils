@@ -1,0 +1,8 @@
+os:
+  - linux
+
+language: go
+
+script:
+  - dep ensure
+  - go build -o producers producers.go

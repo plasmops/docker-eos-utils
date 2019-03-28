@@ -3,13 +3,14 @@
 BINARIES="keygen producers"
 
 for binary in $BINARIES; do
+mkdir -p build/$binary
 
-cat <<EOF > $binary/$binary.go
+cat <<EOF > build/$binary/main.go
 package main
 import "github.com/mumoshu/variant/pkg/run"
 func main() {
     run.YAML(\`
-$(cat $binary/$binary)
+$(cat $binary)
 \`)
 }
 EOF

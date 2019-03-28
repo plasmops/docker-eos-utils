@@ -1,0 +1,122 @@
+#!/usr/bin/env variant
+
+tasks:
+
+  schedule:
+    description: Create producers schedule JSON
+    options:
+    - name: from
+      description: Path to the producers keys data file
+      type: object
+      required: true
+    - name: basename
+      description: Producers basename (basename+ordinal=producer_name, ex. eosproducer5)
+      type: string
+      default: eosproducer
+    - name: genesis
+      description: Set to true to enable genesis schedule generation (i.e. the first producer_name=eosio)
+      type: boolean
+      default: false
+    ## Notes:
+    #  genesis=true - then the first producer name is set to eosio (convention).
+    script: |
+      cat <<EOF
+      {
+        "schedule": [
+          {{- $producers_num := len (keys (get "from")) -}}
+          {{- range $i, $e := get "from" }}
+          {
+            "producer_name": "{{ if and (get "genesis") (eq $i "0") }}eosio{{ else }}{{ get "basename" }}{{ add1 ($i | atoi) }}{{ end }}",
+            "block_signing_key": "{{ last $e }}"
+          }{{ if lt (add1 ($i | atoi)) $producers_num }},{{ end }}
+          {{- end }}
+        ]
+      }
+      EOF
+
+  create:
+    description: Create various types of accounts
+
+    tasks:
+      producer-accounts:
+        description: Create producer accounts
+        options:
+        - name: from
+          description: Path to the producers keys data file
+          type: object
+          required: true
+        - name: basename
+          description: Producers basename (basename+ordinal=producer_name, ex. eosproducer5)
+          type: string
+          default: eosproducer
+        - name: genesis
+          description: Set to true to enable genesis script generation (i.e. the first producer_name=eosio)
+          type: boolean
+          default: false
+        - name: dryrun
+          description: Set to true to print the script only
+          type: boolean
+          default: false
+        script: |
+          cat <<EOF | tee /tmp/.$$.create.accounts
+          set -e
+
+          CONTRACTS=\${CONTRACTS:-/contracts}
+          EOSURL=\${EOSURL:-http://127.0.0.1:8888}
+
+          # keys substitution
+          {{- range $i, $e  := get "from" }}
+          KEY_{{ $i }}="{{ first $e }}"
+          PUBKEY_{{ $i }}="{{ last $e }}"
+          {{- end }}
+
+          # create wallet
+          cleos -u \$EOSURL wallet create --file /tmp/wallet.txt
+
+          # import genesis or a simple producers key
+          cleos -u \$EOSURL wallet import --private-key \$KEY_0
+
+          i=0
+          {{- if (get "genesis") }}
+          # set genesis contract
+          cleos -u \$EOSURL set contract eosio \${CONTRACTS}/eosio.bios
+          i=1
+          {{- end }}
+
+          # create producer accounts
+          while [ \$i -lt {{ len (keys (get "from" )) }} ]; do
+            key=\$(eval echo '$'KEY_\$i)
+            pubkey=\$(eval echo '$'PUBKEY_\$i)
+            account="{{ get "basename" }}\$((\$i + 1))"
+
+            cleos -u \$EOSURL wallet import --private-key \$key
+            cleos -u \$EOSURL create account eosio \$account \$pubkey
+            
+            i=\$((\$i + 1))
+          done
+          EOF
+          {{ if not (get "dryrun") }}bash /tmp/.$$.create.accounts{{ end }}
+          rs=$?
+          rm -f /tmp/.$$.create.accounts && exit $rs
+
+  action:
+    description: Varios eos actions
+    tasks:
+      setprods:
+        description: Register producers (setprods)
+        options:
+        - name: schedule
+          type: object
+          requred: true
+        script: |
+          cat <<EOF
+          EOSURL=${EOSURL:-http://127.0.0.1:8888}
+          cleos -u $EOSURL push action eosio setprods '{{ get "schedule" | toJson }}' -p eosio@active
+          EOF
+
+  cleanup_wallet:
+    description: Cleanup keosd instance and unlink wallet
+    script: |
+      keosd_pid=$(ps -ao pid,comm | grep keosd | sed -r 's/ *([0-9]+).*/\1/')
+      kill -TERM $keosd_pid
+      rm -rf /tmp/wallet.txt ~/eosio-wallet

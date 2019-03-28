@@ -1,6 +1,6 @@
 # EOS Utils
 
-## Keygen
+## keygen
 
 ### Generate ordinal keys
 
@@ -69,14 +69,17 @@ accounts:
 
 Now use keygen:
 
-```
+```bash
 ./keygen sync --cleos-image=registry.plasma-bank.com/blockchain/eos --cleos-map=./testnet-account-ids.yaml --out-file=test
 ```
 
 
-## Producers
+## eosinit
 
-### Create accounts
+### Create: producer accounts
+
+This operation 
+
 
 ```bash
 ## You can define custom env
@@ -85,14 +88,16 @@ Now use keygen:
 
 
 ## dryrun
-./producers accounts --basename=eoschart --genesis=true --dryrun=true --from=testnet.yaml
+./eosinit create producer-accounts --basename=eoschart --genesis=true --dryrun=true --from=testnet.yaml
 
 ## run
-./producers accounts --basename=eoschart --genesis=true --from=testnet.yaml
+./eosinit create producer-accounts --basename=eoschart --genesis=true --from=testnet.yaml
 ```
 
-### Register active producers
+Note when `--genesis=true` then `set contract .../eosio.bios` is automatically executed.
+
+### Acttion: activate producers setprods
 
 ```bash
-./producers register --schedule-genesis=true --schedule-basename=eoschart --schedule-from=testnet.yaml
+./eosinit action setprods --schedule-genesis=true --schedule-basename=eoschart --schedule-from=testnet.yaml
 ```

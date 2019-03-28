@@ -23,7 +23,7 @@ jobs:
       - image: circleci/golang:1.12
     working_directory: /go/src/project
     environment:
-      BINARIES: "keygen producers"
+      BINARIES: "keygen eosinit"
 
     steps:
     - checkout

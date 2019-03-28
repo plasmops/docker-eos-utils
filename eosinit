@@ -38,6 +38,37 @@ tasks:
     description: Create various types of accounts
 
     tasks:
+      accounts:
+        description: Create eos accounts
+        options:
+        - name: from
+          description: Path to the producers keys data file
+          type: object
+          required: true
+        - name: dryrun
+          description: Set to true to print the script only
+          type: boolean
+          default: false
+        script: |
+          cat <<EOF | tee /tmp/.$$.create.accounts
+          set -e
+
+          CONTRACTS=\${CONTRACTS:-/contracts}
+          EOSURL=\${EOSURL:-http://127.0.0.1:8888}
+
+          # create wallet
+          cleos -u \$EOSURL wallet create --file /tmp/wallet.txt
+
+          # accounts creation
+          {{- range $i, $e  := get "from" }}        
+          cleos -u \$EOSURL wallet import --private-key {{ first $e }}
+          cleos -u \$EOSURL create account eosio {{ $i }} {{ last $e }}
+          {{ end }}
+          EOF
+          {{ if not (get "dryrun") }}bash /tmp/.$$.create.accounts{{ end }}
+          rs=$?
+          rm -f /tmp/.$$.create.accounts && exit $rs
+
       producer-accounts:
         description: Create producer accounts
         options:
@@ -108,11 +139,49 @@ tasks:
         - name: schedule
           type: object
           requred: true
+        - name: dryrun
+          description: Set to true to print the script only
+          type: boolean
         script: |
-          cat <<EOF
-          EOSURL=${EOSURL:-http://127.0.0.1:8888}
-          cleos -u $EOSURL push action eosio setprods '{{ get "schedule" | toJson }}' -p eosio@active
+          cat <<EOF | tee /tmp/.$$.setprods.temp
+          EOSURL=\${EOSURL:-http://127.0.0.1:8888}
+          cleos -u \$EOSURL push action eosio setprods '{{ get "schedule" | toJson }}' -p eosio@active
           EOF
+          {{ if not (get "dryrun") }}bash /tmp/.$$.setprods.temp{{ end }}
+          rs=$?
+          rm -f /tmp/.$$.setprods.temp && exit $rs
+
+      regproducer:
+        description: Register producers with system account
+        options:
+        - name: from
+          description: Path to the producers keys data file
+          type: object
+          required: true
+        - name: basename
+          description: Producers basename (basename+ordinal=producer_name, ex. eosproducer5)
+          type: string
+          default: eosproducer
+        - name: genesis
+          description: Set to true to enable genesis script generation (i.e. the first producer_name=eosio)
+          type: boolean
+          default: false
+        - name: dryrun
+          description: Set to true to print the script only
+          type: boolean
+          default: false
+
+        script: |
+          cat <<EOF | tee /tmp/.$$.regproducer.temp
+          EOSURL=\${EOSURL:-http://127.0.0.1:8888}
+          {{ range $i, $e  := get "from" }}
+          producer_name="{{ if and (get "genesis") (eq $i "0") }}eosio{{ else }}{{ get "basename" }}{{ add1 ($i | atoi) }}{{ end }}"
+          cleos -u \$EOSURL system regproducer \$producer_name {{ last $e }}
+          {{ end }}
+          EOF
+          {{ if not (get "dryrun") }}bash /tmp/.$$.regproducer.temp{{ end }}
+          rs=$?
+          rm -f /tmp/.$$.regproducer.temp && exit $rs
 
   cleanup_wallet:
     description: Cleanup keosd instance and unlink wallet

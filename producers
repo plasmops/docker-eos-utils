@@ -29,7 +29,7 @@ tasks:
       EOSURL=\${EOSURL:-http://127.0.0.1:8888}
 
       # keys substitution
-      {{- range $i, $e := values (get "from") }}
+      {{- range $i, $e  := get "from" }}
       KEY_{{ $i }}="{{ first $e }}"
       PUBKEY_{{ $i }}="{{ last $e }}"
       {{- end }}
@@ -84,12 +84,12 @@ tasks:
       cat <<EOF
       {
         "schedule": [
-          {{- $items := values (get "from") -}}
-          {{- range $i, $e := $items }}
+          {{- $producers_num := len (keys (get "from")) -}}
+          {{- range $i, $e := get "from" }}
           {
-            "producer_name": "{{ if and (get "genesis") (eq $i 0) }}eosio{{ else }}{{ get "basename" }}{{ add1 $i }}{{ end }}",
+            "producer_name": "{{ if and (get "genesis") (eq $i "0") }}eosio{{ else }}{{ get "basename" }}{{ add1 ($i | atoi) }}{{ end }}",
             "block_signing_key": "{{ last $e }}"
-          }{{ if lt (add1 $i) (len ($items)) }},{{ end }}
+          }{{ if lt (add1 ($i | atoi)) $producers_num }},{{ end }}
           {{- end }}
         ]
       }

@@ -35,11 +35,11 @@ jobs:
     - run:
         name: Build binaries
         command: |
+          # update before build
+          bash update.sh
+         
           go get -u github.com/golang/dep/cmd/dep
           dep ensure -v && mkdir -p dist
-
-          # update before build
-          sh update.sh
 
           for binary in $BINARIES; do
             CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -ldflags '-w -extldflags "-static"' -o dist/${binary}_linux_amd64 build/$binary/main.go

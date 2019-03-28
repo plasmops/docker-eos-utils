@@ -63,3 +63,31 @@ tasks:
       fi
 
       rm -f .$$-{{ .file }}-update
+
+  signature-providers:
+    description: Form signature providers lines
+    options:
+    - name: from
+      type: object
+      required: true
+    script: |
+      {{- $items := values (get "from") -}}
+      cat <<EOF
+      {{- range $i, $e := $items }}
+      {{ last $e }}=KEY:{{ first $e }}
+      {{- end }}
+      EOF
+
+  peer-private-keys:
+    description: Form peer private keys lines
+    options:
+    - name: from
+      type: object
+      required: true
+    script: |
+      {{- $items := values (get "from") -}}
+      cat <<EOF
+      {{- range $i, $e := $items }}
+      '["{{ last $e }}","{{ first $e }}"]'
+      {{- end }}
+      EOF

@@ -24,6 +24,4 @@ deploy:
   provider: script
   on:
     tags: true
-  script: |
-    go get github.com/tcnksm/ghr
-    ghr -t ${GITHUB_TOKEN} -u ${TRAVIS_REPO_SLUG%/*} -r ${TRAVIS_REPO_SLUG#*/} -c ${TRAVIS_TAG} -delete ${TRAVIS_TAG} ./dist/
+  script: ghr --username plasmops --token $GITHUB_TOKEN --replace --debug $(git tag -l --contains HEAD) dist/

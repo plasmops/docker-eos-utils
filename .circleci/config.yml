@@ -4,7 +4,7 @@ workflows:
   version: 2
   main:
     jobs:
-      - build
+      - build:
           filters:
             tags:
               only: /^v?\d+\.\d+\.\d+$/

@@ -2,24 +2,44 @@
 
 tasks:
   ## Generate a key
-  key:
+  cleos:
     description: Generates eos key-pair(s)
     parameters:
-    - name: count
+    - name: keys
       description: Number of key-pairs to create
       type: integer
       default: 1
-    runner:
-      image: eosio/eos
-      command: bash
-      args: [-c]
+    - name: map
+      description: Use map file for the account names
+      type: object
+      default: {}
+    - name: field
+      description: Specify the map field
+      type: string
+      default: "accounts"
+    - name: image
+      description: Specify the container image with cleos
+      default: eosio/eos
 
-    ## Generate a JSON object with a given number of keypairs
     script: |
-      {{- range $i, $e := until (.count) }}
-      pair=$(cleos create key --to-console | sed 's/.*: //' | sed ':a;N;$!ba;s/\n/, /g')
-      printf '"{{ $i }}": [%s]\n' "$pair"
+      cat <<EOF > /tmp/.$$.keygen.temp
+      {{- if .map -}}
+      {{- $items := index .map .field -}}
+        {{- range $i, $e := $items }}
+      pair=\$(cleos create key --to-console | sed 's/.*: /  - /')
+      printf '"{{ $e }}": \n%s\n' "\$pair"
+        {{- end }}
+      {{- else -}}
+      {{- $items := until (.keys) -}}
+        {{- range $i, $e := $items }}
+      pair=\$(cleos create key --to-console | sed 's/.*: /  - /' )
+      printf '"{{ $e }}": \n%s\n' "\$pair"
+        {{- end }}
       {{- end }}
+      EOF
+      cat /tmp/.$$.keygen.temp | docker run --rm -i {{ .image }} sh -s
+      rm -f /tmp/.$$.keygen.temp
+
 
   out:
     description: Cats a keypairs yaml file
@@ -39,7 +59,7 @@ tasks:
   sync:
     description: Creates a keypair yaml file
     options:
-    - name: key
+    - name: cleos
       type: object
       required: true
     - name: out
@@ -47,7 +67,7 @@ tasks:
       required: true
     script: |
       set -e
-      {{- $update := merge .key .out }}
+      {{- $update := merge .cleos .out }}
       cat <<EOF > .$$-{{ .file }}-update
       {{ $update | toYaml -}}
       EOF

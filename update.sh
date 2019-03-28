@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BINARIES="keygen producers"
+BINARIES="${BINARIES:-keygen eos}"
 
 for binary in $BINARIES; do
 mkdir -p build/$binary

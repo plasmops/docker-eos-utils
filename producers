@@ -110,4 +110,4 @@ tasks:
     script: |
       keosd_pid=$(ps -ao pid,comm | grep keosd | sed -r 's/ *([0-9]+).*/\1/')
       kill -TERM $keosd_pid
-      rm -f /tmp/wallet.txt ~/eosio-wallet
+      rm -rf /tmp/wallet.txt ~/eosio-wallet

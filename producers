@@ -51,7 +51,7 @@ tasks:
       while [ \$i -lt {{ len (keys (get "from" )) }} ]; do
         key=\$(eval echo '$'KEY_\$i)
         pubkey=\$(eval echo '$'PUBKEY_\$i)
-        account=\$(eval echo '$'{{ get "basename" }}\$((\$i + 1)))
+        account="{{ get "basename" }}\$((\$i + 1))"
 
         cleos -u \$EOSURL wallet import --private-key \$key
         cleos -u \$EOSURL create account eosio \$account \$pubkey

@@ -7,7 +7,7 @@ workflows:
       - build:
           filters:
             tags:
-              only: /^v*\d+\.\d+\.\d+$/
+              only: /^v?\d+\.\d+\.\d+$/
       - publish-artifacts:
           requires:
             - build
@@ -15,7 +15,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v*\d+\.\d+\.\d+$/
+              only: /^v?\d+\.\d+\.\d+$/
 
 jobs:
   build:
@@ -39,8 +39,8 @@ jobs:
           dep ensure -v && mkdir -p dist
 
           for binary in $BINARIES; do
-            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -ldflags '-w -extldflags "-static"' -o dist/$binary $binary/$binary.go
-            objcopy -S dist/$binary
+            CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -ldflags '-w -extldflags "-static"' -o dist/${binary}_linux_amd64 $binary/$binary.go
+            objcopy -S dist/${binary}_linux_amd64
           done
 
     - save_cache:
@@ -62,4 +62,4 @@ jobs:
       - run:
           name: Publish artifacts
           command: |
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./artifacts/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -recreate ${CIRCLE_TAG} ./artifacts/

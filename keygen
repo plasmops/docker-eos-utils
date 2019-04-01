@@ -91,10 +91,10 @@ tasks:
       type: object
       required: true
     script: |
-      {{- $items := values (get "from") -}}
+      {{- $map := get "from" -}}
       cat <<EOF
-      {{- range $i, $e := $items }}
-      {{ last $e }}=KEY:{{ first $e }}
+      {{- range $k, $v := $map }}
+      {{ last $v }}=KEY:{{ first $v }}
       {{- end }}
       EOF
 
@@ -105,9 +105,9 @@ tasks:
       type: object
       required: true
     script: |
-      {{- $items := values (get "from") -}}
+      {{- $map := get "from" -}}
       cat <<EOF
-      {{- range $i, $e := $items }}
-      '["{{ last $e }}","{{ first $e }}"]'
+      {{- range $k, $v := $map }}
+      '["{{ last $v }}","{{ first $v }}"]'
       {{- end }}
       EOF

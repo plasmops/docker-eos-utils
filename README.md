@@ -45,33 +45,22 @@ keygen ≫ starting task sync
 - EOS6byTw6Mo2312vxet5eRNosoPMSUwMJhKo5MVsXDUCyYVCmSwXn
 ```
 
-### Named keys
+#### Named accounts (uses the map file)
 
-To generate named keys, first create a YAML file containing a map as bellow:
+
+Create a map file `map.yaml`:
 
 ```yaml
-# testnet-map.yaml
+# map.yaml
 accounts:
-  - eosio.bpay
-  - eosio.msig
-  - eosio.names
-  - eosio.ram
-  - eosio.ramfee
-  - eosio.saving
-  - eosio.stake
-  - eosio.system
-  - eosio.token
-  - eosio.vpay
-  - arsp
-  - audp
-  - brlp
+  - eosio
+  - foo
+  - bar
 ```
 
-Now use keygen:
+and generate keys file:
 
-```bash
-./keygen sync --cleos-image=registry.plasma-bank.com/blockchain/eos --cleos-map=./testnet-account-ids.yaml --out-file=test
-```
+`keygen sync --cleos-image=eosio/eos --cleos-map=map.yaml --out-file=test-producers.yaml`
 
 
 ## eosinit
@@ -88,7 +77,7 @@ This operation
 
 
 ## dryrun
-./eosinit create producer-accounts --dryrun=true --from=testnet.yaml
+./eosinit create producer-accounts --map --dryrun=true --from=testnet.yaml
 
 ## run
 ./eosinit create producer-accounts --from=testnet.yaml

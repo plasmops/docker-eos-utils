@@ -94,7 +94,7 @@ tasks:
       {{- $map := get "from" -}}
       cat <<EOF
       {{- range $k, $v := $map }}
-      {{ last $v }}=KEY:{{ first $v }}
+      {{ $k }}: {{ last $v }}=KEY:{{ first $v }}
       {{- end }}
       EOF
 

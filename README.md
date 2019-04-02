@@ -77,7 +77,7 @@ This operation
 
 
 ## dryrun
-./eosinit create producer-accounts --map --dryrun=true --from=testnet.yaml
+./eosinit create producer-accounts --dryrun=true --from=testnet.yaml
 
 ## run
 ./eosinit create producer-accounts --from=testnet.yaml

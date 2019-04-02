@@ -27,6 +27,22 @@ tasks:
       }
       EOF
 
+  export-public:
+    description: Create eos accounts
+    options:
+    - name: from
+      description: Path to the producers keys data file
+      type: object
+      required: true
+
+    script: |
+      cat <<EOF
+      # export public keys
+      {{ range $name, $keys  := get "from" }}
+      export PUBKEY_{{ $name | replace "." "" }}={{ last $keys }}
+      {{- end }}
+      EOF
+
   create:
     description: Create various types of accounts
 
@@ -49,8 +65,9 @@ tasks:
           CONTRACTS=\${CONTRACTS:-/contracts}
           EOSURL=\${EOSURL:-http://127.0.0.1:8888}
 
-          # create wallet
-          cleos -u \$EOSURL wallet create --file /tmp/wallet.txt
+          # create wallet (if no keosd is running)
+          ( ps -eo pid,comm,stat | grep -vw Z | grep -q keosd ) || \
+            cleos -u \$EOSURL wallet create --file /tmp/wallet.txt
 
           # accounts creation
           {{- range $i, $e  := get "from" }}        
@@ -86,8 +103,9 @@ tasks:
           PUBKEY_{{ $name | replace "." "" }}="{{ last $keys }}"
           {{- end }}
 
-          # create wallet
-          cleos -u \$EOSURL wallet create --file /tmp/wallet.txt
+          # create wallet (if no keosd is running)
+          ( ps -eo pid,comm,stat | grep -vw Z | grep -q keosd ) || \
+            cleos -u \$EOSURL wallet create --file /tmp/wallet.txt
 
           # import genesis key and initialize the bios contract
           if [ -n "\$KEY_eosio" ]; then
@@ -120,6 +138,8 @@ tasks:
         - name: dryrun
           description: Set to true to print the script only
           type: boolean
+          default: false
+
         script: |
           cat <<EOF | tee /tmp/.$$.setprods.temp
           EOSURL=\${EOSURL:-http://127.0.0.1:8888}

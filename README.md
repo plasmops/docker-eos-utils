@@ -88,16 +88,14 @@ This operation
 
 
 ## dryrun
-./eosinit create producer-accounts --basename=eoschart --genesis=true --dryrun=true --from=testnet.yaml
+./eosinit create producer-accounts --dryrun=true --from=testnet.yaml
 
 ## run
-./eosinit create producer-accounts --basename=eoschart --genesis=true --from=testnet.yaml
+./eosinit create producer-accounts --from=testnet.yaml
 ```
-
-Note when `--genesis=true` then `set contract .../eosio.bios` is automatically executed.
 
 ### Acttion: activate producers setprods
 
 ```bash
-./eosinit action setprods --schedule-genesis=true --schedule-basename=eoschart --schedule-from=testnet.yaml
+./eosinit action setprods --schedule-from=testnet.yaml
 ```

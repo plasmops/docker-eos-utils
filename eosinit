@@ -14,7 +14,7 @@ tasks:
       {
         "schedule": [
           {{- $producers_num := len (keys (get "from")) -}}
-          {{- range $i, $name := keys (get "from") }}
+          {{- range $i, $name := sortAlpha (keys (get "from")) }}
           {{- $keys := index (get "from") $name }}
           {{- if ne $name "eosio" }}
           {
